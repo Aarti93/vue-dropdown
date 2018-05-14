@@ -1,8 +1,8 @@
 {
-  "name": "vue-select",
+  "name": "vue-dropdown",
   "version": "1.0.0",
   "description": "A dropdown component with multiselect support in vue.js 2.0",
-  "author": "Aarti Prabhu <aarti.prabhu@olacabs.com>",
+  "author": "Aarti Prabhu <aarti.prabhu93@gmail.com>",
   "private": true,
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",

@@ -6,7 +6,7 @@
 </template>
 
 <script>
-import Multiselect from './components/Multiselect';
+import Multiselect from 'vue-select-multiple';
 
 export default {
   name: 'app',

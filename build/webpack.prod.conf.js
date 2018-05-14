@@ -20,9 +20,15 @@ const webpackConfig = merge(baseWebpackConfig, {
     })
   },
   devtool: config.build.productionSourceMap ? config.build.devtool : false,
+  entry: {
+    app: './src/components/Multiselect.vue'
+  },
   output: {
     path: config.build.assetsRoot,
-    filename: utils.assetsPath('js/[name].[chunkhash].js')
+    libraryTarget: 'umd',
+    library: 'vue-select-multiple',
+    filename: 'vue-select-multiple.min.js',
+    publicPath: './'
   },
   plugins: [
     // http://vuejs.github.io/vue-loader/en/workflow/production.html

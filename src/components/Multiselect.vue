@@ -1,12 +1,13 @@
 <template>
   <div class="multiselect">
-    <div class="wrapper" ref="multiselect">
-      <div class="multiselect-input" @click="handleOpenDropdown">
-        <input class="search-input" v-model="searchQuery" :placeholder="placeholder" @click="handleInputClick" @input="handleInputChange" />
-        <i :class="['caret', {'upward': open, 'downward': !open}]" @click="handleInputClick" />
+    <div :class="['wrapper', {'multiple': multiple}]" ref="multiselect">
+      <div class="multiselect-input" @click="changeDropdownState(true)">
+        <input class="search-input" :readonly="!enableSearch" :placeholder="placeholder" @click="handleInputClick"
+        @keyup="handleInput" :disabled="disabled" :value="displayValue" />
+        <i :class="['caret', {'upward': open, 'downward': !open, 'disabled': disabled}]" @click="handleInputClick" />
       </div>
       <transition name="slide-fade" mode="out-in">
-        <div class="multiselect-dropdown" v-if="open">
+        <div class="multiselect-dropdown" v-if="open && !disabled">
           <div v-if="searchQuery && filteredOptions.length === 0" class="no-result">{{noResultMessage}}</div>
           <div v-else>
             <div v-if="multiple">
@@ -14,14 +15,15 @@
                 <input type="checkbox" class="styled-checkbox" id="all" :checked="allSelected" />
                 <label for="all">Select All</label>
               </div>
-              <div :class="['option-row', {highlight: isChecked(option)}]" v-for="option in filteredOptions"
-              :key="option[valueAttr]" @click="(e) => toggleCheckedState(e, option)">
+              <div :class="['option-row', {highlight: isChecked(option)}]" v-for="option in filteredOptions" :key="option[valueAttr]"
+              @click="toggleCheckedState(option, $event)">
                 <input type="checkbox" :id="option[valueAttr]" class="styled-checkbox" :checked="isChecked(option)">
                 <label :for="option[valueAttr]">{{option[displayAttr]}}</label>
               </div>
             </div>
             <div v-else>
-              <div class="option-row" v-for="option in filteredOptions" :key="option[valueAttr]" @click="handleSelectedValue(option)">
+              <div :class="['option-row', {highlight: option[valueAttr] === selectedValue[valueAttr]}]" v-for="option in filteredOptions"
+              :key="option[valueAttr]" @click="handleSelectedValue(option)">
                 <span>{{option[displayAttr]}}</span>
               </div>
             </div>
@@ -29,7 +31,7 @@
         </div>
       </transition>
     </div>
-    <div v-if="multiple" class="selected-vals">{{selectedOptionsString}}</div>
+    <div v-if="multiple" :class="['selected-vals', {'disabled': disabled}]">{{selectedOptionsString}}</div>
   </div>
 </template>
 
@@ -60,14 +62,36 @@ export default {
     multiple: {
       type: Boolean,
       default: false
+    },
+    defaultSelect: {
+      type: Object,
+      default: null
+    },
+    enableSearch: {
+      type: Boolean,
+      default: false
+    },
+    disabled: {
+      type: Boolean,
+      default: false
     }
   },
   data() {
+    const checked = {};
+    let selectedValue;
+    if (this.defaultSelect) {
+      if (this.multiple) {
+        checked[this.defaultSelect[this.valueAttr]] = true;
+      } else {
+        selectedValue = this.defaultSelect;
+      }
+    }
     return {
       open: false,
       searchQuery: "",
-      checked: {},
-      valueSelected: false // Is value selected for single select
+      checked,
+      selectedValue, // In case of single select
+      editSearch: false
     };
   },
   computed: {
@@ -91,47 +115,62 @@ export default {
       return selectedList;
     },
     allSelected() {
-      return this.filteredOptions.every(
-        option => this.checked[option[this.valueAttr]]
-      );
+      return this.filteredOptions.every(option => this.checked[option[this.valueAttr]]);
+    },
+    selectedOptions() {
+      return this.options.filter(option => this.checked[option[this.valueAttr]]);
+    },
+    multiSelectDisplayMsg() {
+      return `${this.selectedOptions.length} of ${this.options.length} selected`;
+    },
+    displayValue() {
+      if (this.enableSearch && this.editSearch) {
+        return this.searchQuery;
+      } else if (this.multiple) {
+        return this.multiSelectDisplayMsg;
+      } else if (this.selectedValue) {
+        return this.selectedValue[this.displayAttr];
+      }
+      return "";
     }
   },
   methods: {
+    updateSelectedOptions(selectedOptions) {
+      this.$emit("input", selectedOptions);
+    },
+    handleInput(e) {
+      this.searchQuery = e.target.value;
+    },
     handleInputClick(e) {
       e.stopPropagation();
-      this.searchQuery = "";
-      this.toggleDropdown();
+      this.changeDropdownState(!this.open);
     },
-    handleInputChange() {
-      this.valueSelected = false;
-    },
-    toggleDropdown() {
-      this.open = !this.open;
+    changeDropdownState(state) {
+      if (!this.disabled) {
+        this.open = state;
+        if (state) {
+          if (this.enableSearch) {
+            this.editSearch = true;
+          }
+        } else {
+          this.searchQuery = "";
+          this.editSearch = false;
+        }
+      }
     },
     handleSelectedValue(option) {
-      this.searchQuery = option[this.displayAttr];
-      this.valueSelected = true;
+      this.selectedValue = option;
+      this.changeDropdownState(false);
       this.updateSelectedOptions(option);
-      this.toggleDropdown();
     },
-    handleOpenDropdown() {
-      this.open = true;
-    },
-    toggleCheckedState(e, option) {
+    toggleCheckedState(option, e) {
       e.stopPropagation();
       e.preventDefault();
       const checkedState = { ...this.checked };
-      checkedState[option[this.valueAttr]] = !checkedState[
-        option[this.valueAttr]
-      ];
+      checkedState[option[this.valueAttr]] = !checkedState[option[this.valueAttr]];
       this.checked = checkedState;
-      const selectedOptions = this.options.filter(
-        op => this.checked[op[this.valueAttr]]
-      );
+      const selectedOptions = this.options.filter(op => this.checked[op[this.valueAttr]]);
       this.updateSelectedOptions(selectedOptions);
-    },
-    updateSelectedOptions(selectedOptions) {
-      this.$emit("input", selectedOptions);
     },
     isChecked(option) {
       return Boolean(this.checked[option[this.valueAttr]]);
@@ -153,10 +192,7 @@ export default {
       const el = this.$refs.multiselect;
       const target = e.target;
       if (el && el !== target && !el.contains(target)) {
-        this.open = false;
-        if (!this.valueSelected || this.multiple) {
-          this.searchQuery = "";
-        }
+        this.changeDropdownState(false);
       }
     }
   },
@@ -164,7 +200,6 @@ export default {
     document.addEventListener("click", this.handleDocumentClick); // To close dropdown on click outside
   },
   destroyed() {
-    // important to clean up!!
     document.removeEventListener("click", this.handleDocumentClick);
   }
 };
@@ -192,9 +227,9 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   color: #2c3e50;
   width: 100%;
-  font-size: 12pt;
+  font-size: 11pt;
   .multiselect-dropdown {
-    width: 98%;
+    width: 100%;
     max-height: 250px;
     min-width: 150px;
     display: inline-block;
@@ -202,15 +237,18 @@ export default {
     border: 1px solid #e9ecef;
     box-shadow: 0px 0px 10px -2px grey;
     z-index: 100;
+    position: absolute;
+    background-color: white;
+    font-weight: 400;
     .option-row {
       padding: 0.2rem 0.2rem 0.2rem 1rem;
       cursor: default;
       &.highlight {
         background-color: #e9ecef;
+        font-weight: 500;
       }
       &.select-all {
         padding-top: 15px;
-        padding-bottom: 5px;
         border-bottom: 1px solid #e9ecef;
       }
     }
@@ -229,15 +267,13 @@ export default {
     width: 100%;
     position: relative;
     .search-input {
-      width: 96%;
+      width: 100%;
       padding: 4px 4px 4px 7px;
       border: 1px solid #e9ecef;
       box-shadow: 0px 0px 10px -2px grey;
-      border-top-left-radius: 5px;
-      border-bottom-left-radius: 5px;
+      border-radius: 5px;
       font-size: 0.9rem;
       min-height: 27px;
-      min-width: 150px;
     }
     input.search-input:focus {
       outline: none;
@@ -248,37 +284,48 @@ export default {
     border-style: solid;
     border-right: 5px solid transparent;
     border-left: 5px solid transparent;
-    right: 4%;
+    right: 10px;
     position: absolute;
     cursor: pointer;
+    border-color: #6c757da6 transparent transparent;
+    &.disabled {
+      border-color: #54545436 transparent transparent
+    }
     &.downward {
-      border-color: #6c757da6 transparent transparent;
       top: 45%;
     }
     &.upward {
-      border-color: transparent transparent #6c757da6;
       bottom: 40%;
     }
   }
   .wrapper {
     display: inline-block;
-    width: 35%;
+    width: 100%;
+    position: relative;
+    &.multiple {
+      width: 38%;
+    }
   }
   .selected-vals {
     padding: 7px 4px 2px 10px;
     width: 60%;
-    display: inline-block;
     padding: 4px 10px;
     border: 1px solid #e9ecef;
     box-shadow: 0px 0px 10px -2px grey;
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
+    border-radius: 5px;
     margin-left: -3px;
     vertical-align: top;
-    min-height: 27px;
+    min-height: 30px;
     margin-left: 1px;
     max-height: 70px;
     overflow: scroll;
+    float: right;
+  }
+  input:disabled {
+    color: rgba(84, 84, 84, 0.45);
+  }
+  .disabled {
+    color: rgba(84, 84, 84, 0.45);
   }
   .styled-checkbox {
     position: absolute; // take it out of document flow
@@ -305,7 +352,7 @@ export default {
 
     // Box hover
     &:hover + label:before {
-      background: slategray
+      background: slategray;
     }
 
     // Box focus
@@ -319,23 +366,16 @@ export default {
     }
 
     &:checked + label:after {
-        content: '';
-        position: absolute;
-        left: 5px;
-        top: 9px;
-        background: white;
-        width: 2px;
-        height: 2px;
-        box-shadow:
-          2px 0 0 white,
-          4px 0 0 white,
-          4px -2px 0 white,
-          4px -4px 0 white,
-          4px -6px 0 white,
-          4px -8px 0 white;
-        transform: rotate(45deg);
-      }
+      content: "";
+      position: absolute;
+      left: 5px;
+      top: 9px;
+      background: white;
+      width: 2px;
+      height: 2px;
+      box-shadow: 2px 0 0 white, 4px 0 0 white, 4px -2px 0 white, 4px -4px 0 white, 4px -6px 0 white, 4px -8px 0 white;
+      transform: rotate(45deg);
+    }
   }
 }
 </style>
-

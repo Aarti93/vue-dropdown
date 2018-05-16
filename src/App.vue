@@ -1,11 +1,12 @@
 <template>
     <div id="app">
-       <Multiselect :options="options" valueAttr="age" displayAttr="name" v-model="selectedOptions" multiple/>
+       <Multiselect :options="options" valueAttr="age" displayAttr="name" v-model="selectedOptions" multiple disabled/>
     </div>
 
 </template>
 
 <script>
+
 import Multiselect from 'vue-select-multiple';
 
 export default {

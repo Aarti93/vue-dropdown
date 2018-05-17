@@ -1,6 +1,6 @@
 # vue-select
 
-> A select component with multiselect support in vue.js 2.0
+> WIP : A select component with multiselect support in vue.js 2.0
 
 ## Build Setup
 

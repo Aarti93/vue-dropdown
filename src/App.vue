@@ -7,13 +7,15 @@
 
 <script>
 
-import Multiselect from 'vue-select-multiple';
+// import Multiselect from 'vue-select-multiple';
+import Multiselect from '../dist/vue-select-multiple.min';
 
 export default {
   name: 'app',
   data() {
     return {
-      options: [
+      options: ["A", "B", "C", "D"],
+      options1: [
         {
           name: 'Aarti',
           age: 10,

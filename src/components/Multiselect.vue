@@ -2,9 +2,10 @@
   <div class="multiselect">
     <div :class="['wrapper', {'multiple': multiple}]" ref="multiselect">
       <div class="multiselect-input" @click="changeDropdownState(true)">
-        <input class="search-input" :readonly="!enableSearch" :placeholder="placeholder" @click="handleInputClick"
-        @keyup="handleInput" :disabled="disabled" :value="displayValue" />
+        <input :class="['search-input', {'invalid': !valid}]" :readonly="!enableSearch" :placeholder="placeholder"
+          @click="handleInputClick" @keyup="handleInput" :disabled="disabled" :value="displayValue" />
         <i :class="['caret', {'upward': open, 'downward': !open, 'disabled': disabled}]" @click="handleInputClick" />
+        <div class="error-msg" v-if="!valid">{{invalidMsg}}</div>
       </div>
       <transition name="slide-fade" mode="out-in">
         <div class="multiselect-dropdown" v-if="open && !disabled">
@@ -15,15 +16,15 @@
                 <input type="checkbox" class="styled-checkbox" id="all" :checked="allSelected" />
                 <label for="all">Select All</label>
               </div>
-              <div :class="['option-row', {highlight: isChecked(option)}]" v-for="option in filteredOptions" :key="option[valueAttr]"
-              @click="toggleCheckedState(option, $event)">
+              <div :class="['option-row', {highlight: isChecked(option)}]" v-for="option in filteredOptions"
+                :key="option[valueAttr]" @click="toggleCheckedState(option, $event)">
                 <input type="checkbox" :id="option[valueAttr]" class="styled-checkbox" :checked="isChecked(option)">
                 <label :for="option[valueAttr]">{{option[displayAttr]}}</label>
               </div>
             </div>
             <div v-else>
-              <div :class="['option-row', {highlight: option[valueAttr] === selectedValue[valueAttr]}]" v-for="option in filteredOptions"
-              :key="option[valueAttr]" @click="handleSelectedValue(option)">
+              <div :class="['option-row', {highlight: option[valueAttr] === selectedValue[valueAttr]}]"
+                v-for="option in filteredOptions" :key="option[valueAttr]" @click="handleSelectedValue(option)">
                 <span>{{option[displayAttr]}}</span>
               </div>
             </div>
@@ -36,52 +37,34 @@
 </template>
 
 <script>
+const SELECT_ALL = "*";
 export default {
   name: "multiselect",
   props: {
-    valueAttr: {
-      type: String,
-      required: true
-    },
-    displayAttr: {
-      type: String,
-      required: true
-    },
-    options: {
-      type: Array,
-      required: true
-    },
-    placeholder: {
-      type: String,
-      default: "Select items"
-    },
-    noResultMessage: {
-      type: String,
-      default: "No results found"
-    },
-    multiple: {
-      type: Boolean,
-      default: false
-    },
-    defaultSelect: {
-      type: Object,
-      default: null
-    },
-    enableSearch: {
-      type: Boolean,
-      default: false
-    },
-    disabled: {
-      type: Boolean,
-      default: false
-    }
+    valueAttr: { type: String, required: true },
+    displayAttr: { type: String, required: true },
+    options: { type: Array, required: true },
+    placeholder: { type: String, default: "Select items" },
+    noResultMessage: { type: String, default: "No results found" },
+    multiple: { type: Boolean, default: false },
+    defaultSelect: { type: [Object, String], default: null, validator: value => (typeof value === "string" ? value === SELECT_ALL : true) },
+    enableSearch: { type: Boolean, default: false },
+    disabled: { type: Boolean, default: false },
+    valid: { type: Boolean, default: true },
+    invalidMsg: { type: String, default: "This field is required" }
   },
   data() {
     const checked = {};
-    let selectedValue;
+    let selectedValue = {};
     if (this.defaultSelect) {
       if (this.multiple) {
-        checked[this.defaultSelect[this.valueAttr]] = true;
+        if (this.defaultSelect === SELECT_ALL) {
+          this.options.forEach((option) => {
+            checked[option[this.valueAttr]] = true;
+          });
+        } else {
+          checked[this.defaultSelect[this.valueAttr]] = true;
+        }
       } else {
         selectedValue = this.defaultSelect;
       }
@@ -274,6 +257,14 @@ export default {
       border-radius: 5px;
       font-size: 0.9rem;
       min-height: 27px;
+      &.invalid {
+        border-color: #dc3545;
+      }
+    }
+    .error-msg {
+      margin-top: 0.25rem;
+      font-size: 80%;
+      color: #dc3545;
     }
     input.search-input:focus {
       outline: none;
@@ -287,15 +278,19 @@ export default {
     right: 10px;
     position: absolute;
     cursor: pointer;
-    border-color: #6c757da6 transparent transparent;
-    &.disabled {
-      border-color: #54545436 transparent transparent
-    }
     &.downward {
-      top: 45%;
+      border-color: #6c757da6 transparent transparent;
+      &.disabled {
+        border-color: #54545436 transparent transparent;
+      }
+      top: 15px;
     }
     &.upward {
-      bottom: 40%;
+      border-color: transparent transparent #6c757da6;
+      &.disabled {
+        border-color: transparent transparent #54545436;
+      }
+      top: 8px;
     }
   }
   .wrapper {

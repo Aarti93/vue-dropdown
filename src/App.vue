@@ -1,6 +1,6 @@
 <template>
     <div id="app">
-       <Multiselect :options="options" valueAttr="age" displayAttr="name" v-model="selectedOptions" multiple disabled/>
+       <Multiselect :options="options" valueAttr="age" displayAttr="name" v-model="selectedOptions" multiple :valid="false"/>
     </div>
 
 </template>

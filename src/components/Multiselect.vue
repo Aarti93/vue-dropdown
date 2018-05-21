@@ -3,9 +3,9 @@
     <div :class="['wrapper', {'multiple': multiple}]" ref="multiselect">
       <div class="multiselect-input" @click="changeDropdownState(true)">
         <input :class="['input', {'invalid': !valid, 'search': enableSearch}]" :readonly="!enableSearch"
-          :placeholder="placeholder" @click="handleInputClick" @keyup="handleInput" :disabled="disabled" :value="displayValue" />
+          :placeholder="placeholder"  @keyup="handleInput" :disabled="disabled" :value="displayValue" />
         <i :class="['caret', {'upward': open, 'downward': !open, 'disabled': disabled}]" @click="handleInputClick" />
-        <div class="error-msg" v-if="!valid">{{invalidMsg}}</div>
+        <div class="error-msg" v-if="!valid && !open">{{invalidMsg}}</div>
       </div>
       <transition name="slide-fade" mode="out-in">
         <div class="multiselect-dropdown" v-if="open && !disabled">
@@ -17,15 +17,15 @@
                 <label for="all">Select All</label>
               </div>
               <div :class="['option-row', {highlight: isChecked(option)}]" v-for="option in filteredOptions"
-                :key="value(option)" @click="toggleCheckedState(option, $event)">
-                <input type="checkbox" :id="value(option)" class="styled-checkbox" :checked="isChecked(option)">
-                <label :for="value(option)">{{display(option)}}</label>
+                :key="val(option)" @click="toggleCheckedState(option, $event)">
+                <input type="checkbox" :id="val(option)" class="styled-checkbox" :checked="isChecked(option)">
+                <label :for="val(option)">{{display(option)}}</label>
               </div>
             </div>
             <div v-else>
-              <div :class="['option-row', {highlight: value(option) === value(selectedValue)}]" v-for="option in filteredOptions"
-                :key="value(option)" @click="handleSelectedValue(option)">
-                <span>{{display(option)}}</span>
+              <div :class="['option-row', {highlight: val(option) === val(selectedValue)}]" v-for="option in filteredOptions"
+                :key="val(option)" @click="handleSelectedValue(option)">
+                <label>{{display(option)}}</label>
               </div>
             </div>
           </div>
@@ -39,15 +39,16 @@
 <script>
 const SELECT_ALL = "*";
 export default {
-  name: "multiselect",
+  name: "MultipleSelect",
   props: {
+    value: [Array, String, Object],
     valueAttr: { type: String },
     displayAttr: { type: String },
     options: { type: Array, required: true },
     placeholder: { type: String, default: "Select items" },
     noResultMessage: { type: String, default: "No results found" },
     multiple: { type: Boolean, default: false },
-    defaultSelect: { type: [Object, String], default: null },
+    defaultSelect: { type: [String, Array, Object], default: null },
     enableSearch: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
     valid: { type: Boolean, default: true },
@@ -55,25 +56,28 @@ export default {
   },
   data() {
     const checked = {};
-    let selectedValue = {};
-    if (this.defaultSelect) {
+    let selectedValue = null;
+    const selected = this.defaultSelect || this.value; // In case of default set through v-model
+    if (selected) {
       if (this.multiple) {
-        if (this.defaultSelect === SELECT_ALL) {
+        if (this.val(selected) === SELECT_ALL) {
           this.options.forEach((option) => {
-            checked[this.value(option)] = true;
+            checked[this.val(option)] = true;
           });
         } else {
-          checked[this.value(this.defaultSelect)] = true;
+          selected.forEach((option) => {
+            checked[this.val(option)] = true;
+          });
         }
       } else {
-        selectedValue = this.defaultSelect;
+        selectedValue = selected;
       }
     }
     return {
       open: false,
       searchQuery: "",
       checked,
-      selectedValue, // In case of single select
+      selectedValue,
       editSearch: false
     };
   },
@@ -88,7 +92,7 @@ export default {
       let selectedList = "";
       let comma = "";
       this.options.forEach((option) => {
-        if (this.checked[this.value(option)]) {
+        if (this.checked[this.val(option)]) {
           if (selectedList) {
             comma = ",";
           }
@@ -98,10 +102,10 @@ export default {
       return selectedList;
     },
     allSelected() {
-      return this.filteredOptions.every(option => this.checked[this.value(option)]);
+      return this.filteredOptions.every(option => this.checked[this.val(option)]);
     },
     selectedOptions() {
-      return this.options.filter(option => this.checked[this.value(option)]);
+      return this.options.filter(option => this.checked[this.val(option)]);
     },
     multiSelectDisplayMsg() {
       return `${this.selectedOptions.length} of ${
@@ -109,19 +113,20 @@ export default {
       } selected`;
     },
     displayValue() {
+      const singleSelect = this.selectedValue || this.defaultSelect || this.value;
       if (this.enableSearch && this.editSearch) {
         return this.searchQuery;
       } else if (this.multiple) {
         return this.multiSelectDisplayMsg;
-      } else if (this.selectedValue) {
-        return this.display(this.selectedValue);
+      } else if (singleSelect) {
+        return this.display(singleSelect);
       }
       return "";
     }
   },
   methods: {
-    value(option) {
-      return option[this.valueAttr] || option;
+    val(option) {
+      return (option && option[this.valueAttr]) || option;
     },
     display(option) {
       return option[this.displayAttr] || option;
@@ -158,28 +163,21 @@ export default {
       e.stopPropagation();
       e.preventDefault();
       const checkedState = { ...this.checked };
-      checkedState[this.value(option)] = !checkedState[this.value(option)];
+      checkedState[this.val(option)] = !checkedState[this.val(option)];
       this.checked = checkedState;
-      const selectedOptions = this.options.filter(
-        op => this.checked[this.value(op)]
-      );
-      this.updateSelectedOptions(selectedOptions);
+      this.updateSelectedOptions(this.selectedOptions);
     },
     isChecked(option) {
-      return Boolean(this.checked[this.value(option)]);
+      return Boolean(this.checked[this.val(option)]);
     },
     handleChangeAll(e = {}) {
       e.preventDefault();
       const checked = {};
-      let selectedOptions = [];
-      if (!this.allSelected) {
-        this.filteredOptions.forEach((option) => {
-          checked[this.value(option)] = true;
-        });
-        selectedOptions = this.options;
-      }
+      this.filteredOptions.forEach((option) => {
+        checked[this.val(option)] = !this.allSelected;
+      });
       this.checked = checked;
-      this.updateSelectedOptions(selectedOptions);
+      this.updateSelectedOptions(this.selectedOptions);
     },
     handleDocumentClick(e) {
       const el = this.$refs.multiselect;
@@ -221,6 +219,7 @@ export default {
   color: #2c3e50;
   width: 100%;
   font-size: 11pt;
+  text-align: left;
   .multiselect-dropdown {
     width: 100%;
     max-height: 250px;
@@ -386,6 +385,11 @@ export default {
         4px -4px 0 white, 4px -6px 0 white, 4px -8px 0 white;
       transform: rotate(45deg);
     }
+  }
+  label {
+    margin-top: 0.2rem;
+    margin-bottom: 0.2rem;
+    display: inline-block;
   }
 }
 </style>

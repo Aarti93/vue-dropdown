@@ -2,8 +2,8 @@
   <div class="multiselect">
     <div :class="['wrapper', {'multiple': multiple}]" ref="multiselect">
       <div class="multiselect-input" @click="changeDropdownState(true)">
-        <input :class="['input', {'invalid': !valid, 'search': enableSearch}]" :readonly="!enableSearch"
-          :placeholder="placeholder"  @keyup="handleInput" :disabled="disabled" :value="displayValue" />
+        <input :class="['input', {'invalid': !valid, 'search': enableSearch}]" :readonly="!enableSearch" :placeholder="placeholder"
+          @keyup="handleInput" :disabled="disabled" :value="displayValue" />
         <i :class="['caret', {'upward': open, 'downward': !open, 'disabled': disabled}]" @click="handleInputClick" />
         <div class="error-msg" v-if="!valid && !open">{{invalidMsg}}</div>
       </div>
@@ -16,15 +16,15 @@
                 <input type="checkbox" class="styled-checkbox" id="all" :checked="allSelected" />
                 <label for="all">Select All</label>
               </div>
-              <div :class="['option-row', {highlight: isChecked(option)}]" v-for="option in filteredOptions"
-                :key="val(option)" @click="toggleCheckedState(option, $event)">
+              <div :class="['option-row', {highlight: isChecked(option)}]" v-for="option in filteredOptions" :key="val(option)"
+                @click="toggleCheckedState(option, $event)">
                 <input type="checkbox" :id="val(option)" class="styled-checkbox" :checked="isChecked(option)">
                 <label :for="val(option)">{{display(option)}}</label>
               </div>
             </div>
             <div v-else>
-              <div :class="['option-row', {highlight: val(option) === val(selectedValue)}]" v-for="option in filteredOptions"
-                :key="val(option)" @click="handleSelectedValue(option)">
+              <div :class="['option-row', {highlight: val(option) === val(value)}]" v-for="option in filteredOptions" :key="val(option)"
+                @click="handleSelectedValue(option)">
                 <label>{{display(option)}}</label>
               </div>
             </div>
@@ -48,7 +48,6 @@ export default {
     placeholder: { type: String, default: "Select items" },
     noResultMessage: { type: String, default: "No results found" },
     multiple: { type: Boolean, default: false },
-    defaultSelect: { type: [String, Array, Object], default: null },
     enableSearch: { type: Boolean, default: false },
     disabled: { type: Boolean, default: false },
     valid: { type: Boolean, default: true },
@@ -56,35 +55,34 @@ export default {
   },
   data() {
     const checked = {};
-    let selectedValue = null;
-    const selected = this.defaultSelect || this.value; // In case of default set through v-model
-    if (selected) {
-      if (this.multiple) {
-        if (this.val(selected) === SELECT_ALL) {
-          this.options.forEach((option) => {
-            checked[this.val(option)] = true;
-          });
-        } else {
-          selected.forEach((option) => {
-            checked[this.val(option)] = true;
-          });
-        }
+    const selected = this.value; // In case of default set through v-model
+    if (selected && this.multiple) {
+      if (this.val(selected) === SELECT_ALL) {
+        this.options.forEach((option) => {
+          checked[this.val(option)] = true;
+        });
       } else {
-        selectedValue = selected;
+        selected.forEach((option) => {
+          checked[this.val(option)] = true;
+        });
       }
     }
     return {
       open: false,
       searchQuery: "",
       checked,
-      selectedValue,
       editSearch: false
     };
   },
   computed: {
     filteredOptions() {
       if (this.searchQuery.length > 0) {
-        return this.options.filter(option => this.display(option).toLowerCase().indexOf(this.searchQuery.toLowerCase()) !== -1);
+        return this.options.filter(
+          option =>
+            this.display(option)
+              .toLowerCase()
+              .indexOf(this.searchQuery.toLowerCase()) !== -1
+        );
       }
       return this.options;
     },
@@ -108,18 +106,15 @@ export default {
       return this.options.filter(option => this.checked[this.val(option)]);
     },
     multiSelectDisplayMsg() {
-      return `${this.selectedOptions.length} of ${
-        this.options.length
-      } selected`;
+      return `${this.selectedOptions.length} of ${this.options.length} selected`;
     },
     displayValue() {
-      const singleSelect = this.selectedValue || this.defaultSelect || this.value;
       if (this.enableSearch && this.editSearch) {
         return this.searchQuery;
       } else if (this.multiple) {
         return this.multiSelectDisplayMsg;
-      } else if (singleSelect) {
-        return this.display(singleSelect);
+      } else if (this.value) {
+        return this.display(this.value);
       }
       return "";
     }
@@ -155,7 +150,6 @@ export default {
       }
     },
     handleSelectedValue(option) {
-      this.selectedValue = option;
       this.changeDropdownState(false);
       this.updateSelectedOptions(option);
     },
@@ -381,8 +375,7 @@ export default {
       background: white;
       width: 2px;
       height: 2px;
-      box-shadow: 2px 0 0 white, 4px 0 0 white, 4px -2px 0 white,
-        4px -4px 0 white, 4px -6px 0 white, 4px -8px 0 white;
+      box-shadow: 2px 0 0 white, 4px 0 0 white, 4px -2px 0 white, 4px -4px 0 white, 4px -6px 0 white, 4px -8px 0 white;
       transform: rotate(45deg);
     }
   }

@@ -48,8 +48,9 @@ module.exports = {
     'no-debugger': process.env.NODE_ENV === 'production' ? 'error' : 'off',
     'no-tabs': ['warn'],
     'indent': ['warn'],
-    'max-len': ['warn', { 'code': 150 }],
+    'max-len': ['warn', { 'code': 300 }],
     'comma-dangle': ['off'],
-    'quotes': ["off", "double"]
+    'quotes': ["off", "double"],
+    'arrow-parens': ["off"]
   }
 }

@@ -2,8 +2,7 @@
   <div class="multiselect">
     <div :class="['wrapper', {'multiple': multiple}]" ref="multiselect">
       <div class="multiselect-input" @click="changeDropdownState(true)">
-        <input :class="['input', {'invalid': !valid, 'search': enableSearch}]" :readonly="!enableSearch" :placeholder="placeholder"
-          @keyup="handleInput" :disabled="disabled" :value="displayValue" />
+        <input :class="['input', {'invalid': !valid, 'search': enableSearch}]" :readonly="!enableSearch" :placeholder="placeholder" @keyup="handleInput" :disabled="disabled" :value="displayValue" />
         <i :class="['caret', {'upward': open, 'downward': !open, 'disabled': disabled}]" @click="handleInputClick" />
         <div class="error-msg" v-if="!valid && !open">{{invalidMsg}}</div>
       </div>
@@ -16,15 +15,13 @@
                 <input type="checkbox" class="styled-checkbox" id="all" :checked="allSelected" />
                 <label for="all">Select All</label>
               </div>
-              <div :class="['option-row', {highlight: isChecked(option)}]" v-for="option in filteredOptions" :key="val(option)"
-                @click="toggleCheckedState(option, $event)">
+              <div :class="['option-row', {highlight: isChecked(option)}]" v-for="option in filteredOptions" :key="val(option)" @click="toggleCheckedState(option, $event)">
                 <input type="checkbox" :id="val(option)" class="styled-checkbox" :checked="isChecked(option)">
                 <label :for="val(option)">{{display(option)}}</label>
               </div>
             </div>
             <div v-else>
-              <div :class="['option-row', {highlight: val(option) === val(value)}]" v-for="option in filteredOptions" :key="val(option)"
-                @click="handleSelectedValue(option)">
+              <div :class="['option-row', {highlight: val(option) === val(value)}]" v-for="option in filteredOptions" :key="val(option)" @click="handleSelectedValue(option)">
                 <label>{{display(option)}}</label>
               </div>
             </div>
@@ -54,19 +51,7 @@ export default {
     invalidMsg: { type: String, default: "This field is required" }
   },
   data() {
-    const checked = {};
-    const selected = this.value; // In case of default set through v-model
-    if (selected && this.multiple) {
-      if (this.val(selected) === SELECT_ALL) {
-        this.options.forEach((option) => {
-          checked[this.val(option)] = true;
-        });
-      } else {
-        selected.forEach((option) => {
-          checked[this.val(option)] = true;
-        });
-      }
-    }
+    const checked = this.getCheckedState();
     return {
       open: false,
       searchQuery: "",
@@ -89,7 +74,7 @@ export default {
     selectedOptionsString() {
       let selectedList = "";
       let comma = "";
-      this.options.forEach((option) => {
+      this.options.forEach(option => {
         if (this.checked[this.val(option)]) {
           if (selectedList) {
             comma = ",";
@@ -103,7 +88,7 @@ export default {
       return this.filteredOptions.every(option => this.checked[this.val(option)]);
     },
     selectedOptions() {
-      return this.options.filter(option => this.checked[this.val(option)]);
+      return this.options.filter(option => this.checked[this.val(option)]).map(op => this.val(op));
     },
     multiSelectDisplayMsg() {
       return `${this.selectedOptions.length} of ${this.options.length} selected`;
@@ -114,7 +99,7 @@ export default {
       } else if (this.multiple) {
         return this.multiSelectDisplayMsg;
       } else if (this.value) {
-        return this.display(this.value);
+        return this.display(this.options.find(option => this.val(option) === this.value));
       }
       return "";
     }
@@ -123,7 +108,7 @@ export default {
     val(option) {
       return (option && option[this.valueAttr]) || option;
     },
-    display(option) {
+    display(option = {}) {
       return option[this.displayAttr] || option;
     },
     updateSelectedOptions(selectedOptions) {
@@ -151,7 +136,7 @@ export default {
     },
     handleSelectedValue(option) {
       this.changeDropdownState(false);
-      this.updateSelectedOptions(option);
+      this.updateSelectedOptions(this.val(option));
     },
     toggleCheckedState(option, e) {
       e.stopPropagation();
@@ -167,7 +152,7 @@ export default {
     handleChangeAll(e = {}) {
       e.preventDefault();
       const checked = {};
-      this.filteredOptions.forEach((option) => {
+      this.filteredOptions.forEach(option => {
         checked[this.val(option)] = !this.allSelected;
       });
       this.checked = checked;
@@ -179,6 +164,27 @@ export default {
       if (el && el !== target && !el.contains(target)) {
         this.changeDropdownState(false);
       }
+    },
+    getCheckedState() {
+      const checked = {};
+      const selected = this.value; // In case of default set through v-model
+      if (selected && this.multiple) {
+        if (selected === SELECT_ALL) {
+          this.options.forEach(option => {
+            checked[this.val(option)] = true;
+          });
+        } else {
+          selected.forEach(val => {
+            checked[val] = true;
+          });
+        }
+      }
+      return checked;
+    }
+  },
+  watch: {
+    value() {
+      this.checked = this.getCheckedState();
     }
   },
   created() {

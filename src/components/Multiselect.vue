@@ -36,7 +36,7 @@
 <script>
 const SELECT_ALL = "*";
 export default {
-  name: "MultipleSelect",
+  name: "VueMultipleSelect",
   props: {
     value: [Array, String, Object],
     valueAttr: { type: String },
@@ -108,8 +108,8 @@ export default {
     val(option) {
       return (option && option[this.valueAttr]) || option;
     },
-    display(option = {}) {
-      return option[this.displayAttr] || option;
+    display(option) {
+      return (option && option[this.displayAttr]) || option;
     },
     updateSelectedOptions(selectedOptions) {
       this.$emit("input", selectedOptions);

@@ -1,6 +1,6 @@
 <template>
     <div id="app">
-       <Multiselect :options="options" valueAttr="age" displayAttr="name" v-model="selectedOptions" multiple :valid="false"/>
+       <VueMultipleSelect :options="options" valueAttr="age" displayAttr="name" v-model="selectedOptions" multiple :valid="false"/>
     </div>
 
 </template>
@@ -9,7 +9,8 @@
 
 // import Multiselect from 'vue-select-multiple';
 // import Multiselect from '../dist/vue-select-multiple.min';
-import Multiselect from './components/Multiselect';
+import { VueMultipleSelect } from './components';
+// import Multiselect from './components';
 
 export default {
   name: 'app',
@@ -70,7 +71,7 @@ export default {
     };
   },
   components: {
-    Multiselect,
+    VueMultipleSelect,
   },
 };
 </script>

@@ -1,0 +1,32 @@
+{
+  "name": "vue-select-multiple",
+  "description": "A dropdown component with multiselect support in vue.js 2.0",
+  "main": "dist/vue-select-multiple.min",
+  "authors": [
+    "Aarti Prabhu <aarti.prabhu93@gmail.com>"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Aarti93/vue-dropdown.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "vue.js",
+    "vue-select",
+    "vue-multiselect",
+    "multiselect",
+    "select"
+  ],
+  "moduleType": [
+    "amd",
+    "node",
+    "es6"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

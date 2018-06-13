@@ -8,8 +8,8 @@
 <script>
 
 // import Multiselect from 'vue-select-multiple';
-// import Multiselect from '../dist/vue-select-multiple.min';
-import { VueMultipleSelect } from './components';
+// import VueMultipleSelect from '../dist/vue-select-multiple';
+import { VueMultipleSelect } from '../dist/vue-select-multiple';
 // import Multiselect from './components';
 
 export default {

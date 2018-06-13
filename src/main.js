@@ -9,7 +9,5 @@ Vue.config.productionTip = false;
 new Vue({
   el: '#app',
   components: { App },
-  template: '<App/>',
+  template: '<App/>'
 });
-// console.log(VueMultipleSelect);
-// console.log(VueMultipleSelect.VueMultipleSelect);

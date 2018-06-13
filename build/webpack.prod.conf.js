@@ -21,12 +21,12 @@ const webpackConfig = merge(baseWebpackConfig, {
   },
   devtool: config.build.productionSourceMap ? config.build.devtool : false,
   entry: {
-    app: './src/components/Multiselect.vue'
+    app: './src/components/index.js'
   },
   output: {
     path: config.build.assetsRoot,
     libraryTarget: 'umd',
-    library: 'vue-select-multiple',
+    library: 'VueSelectMultiple',
     filename: 'vue-select-multiple.js',
     publicPath: './'
   },

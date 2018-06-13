@@ -327,7 +327,7 @@ export default {
     margin-left: 1px;
     max-height: 70px;
     overflow: scroll;
-    float: right;
+    display: inline-block;
   }
   input:disabled {
     color: #54545473;

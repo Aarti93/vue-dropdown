@@ -264,7 +264,7 @@ export default {
       border: 1px solid #e9ecef;
       box-shadow: 0px 0px 10px -2px grey;
       border-radius: 5px;
-      font-size: 0.9rem;
+      font-size: 11pt;
       min-height: 27px;
       cursor: default;
       &.invalid {

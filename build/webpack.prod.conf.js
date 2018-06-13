@@ -27,7 +27,7 @@ const webpackConfig = merge(baseWebpackConfig, {
     path: config.build.assetsRoot,
     libraryTarget: 'umd',
     library: 'vue-select-multiple',
-    filename: 'vue-select-multiple.min.js',
+    filename: 'vue-select-multiple.js',
     publicPath: './'
   },
   plugins: [

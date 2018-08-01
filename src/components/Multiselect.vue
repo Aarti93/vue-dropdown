@@ -1,5 +1,5 @@
 <template>
-  <div class="multiselect">
+  <div class="multiselect" @keydown="handleKeyDown">
     <div :class="['wrapper', {'multiple': multiple}]" ref="multiselect">
       <div class="multiselect-input" @click="changeDropdownState(true)">
         <input :class="['input', {'invalid': !valid, 'search': enableSearch}]" :readonly="!enableSearch" :placeholder="placeholder" @keyup="handleInput" :disabled="disabled" :value="displayValue" />
@@ -21,7 +21,7 @@
               </div>
             </div>
             <div v-else>
-              <div :class="['option-row', {highlight: val(option) === val(value)}]" v-for="option in filteredOptions" :key="val(option)" @click="handleSelectedValue(option)">
+              <div :class="['option-row', {highlight: val(option) === val(highlightedOption)}]" v-for="option in filteredOptions" :key="val(option)" @click="handleSelectedValue(option)">
                 <label>{{display(option)}}</label>
               </div>
             </div>
@@ -56,7 +56,8 @@ export default {
       open: false,
       searchQuery: "",
       checked,
-      editSearch: false
+      editSearch: false,
+      highlightedOption: this.value // In case of single select, arrow down and up to change highlight
     };
   },
   computed: {
@@ -115,7 +116,9 @@ export default {
       this.$emit("input", selectedOptions);
     },
     handleInput(e) {
-      this.searchQuery = e.target.value;
+      if (this.enableSearch) {
+        this.searchQuery = e.target.value;
+      }
     },
     handleInputClick(e) {
       e.stopPropagation();
@@ -136,6 +139,7 @@ export default {
     },
     handleSelectedValue(option) {
       this.changeDropdownState(false);
+      this.highlightedOption = option;
       this.updateSelectedOptions(this.val(option));
     },
     toggleCheckedState(option, e) {
@@ -180,6 +184,30 @@ export default {
         }
       }
       return checked;
+    },
+    handleKeyDown({ code }) {
+      if (!this.multiple) {
+        const highlightedOptionIndex = this.options.findIndex(option => this.val(option) === this.val(this.highlightedOption));
+        let newHighlightOption;
+        switch (code) {
+          case "ArrowDown":
+            newHighlightOption = this.options[highlightedOptionIndex + 1];
+            if (newHighlightOption) {
+              this.highlightedOption = newHighlightOption;
+            }
+            break;
+          case "ArrowUp":
+            newHighlightOption = this.options[highlightedOptionIndex - 1];
+            if (newHighlightOption) {
+              this.highlightedOption = newHighlightOption;
+            }
+            break;
+          case "Enter":
+            this.handleSelectedValue(this.highlightedOption);
+            break;
+          default:
+        }
+      }
     }
   },
   watch: {

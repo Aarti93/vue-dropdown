@@ -9,14 +9,14 @@
 
 // import Multiselect from 'vue-select-multiple';
 // import VueMultipleSelect from '../dist/vue-select-multiple';
-import { VueMultipleSelect } from '../dist/vue-select-multiple';
-// import Multiselect from './components';
+// import { VueMultipleSelect } from '../dist/vue-select-multiple';
+import { VueMultipleSelect } from './components';
 
 export default {
   name: 'app',
   data() {
     return {
-      options: ["A", "B", "C", "D"],
+      options: ["Ab", "Bjdfkf", "CBjdfkf", "DBjdfkf"],
       options1: [
         {
           name: 'Aarti',

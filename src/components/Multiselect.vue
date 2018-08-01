@@ -1,8 +1,8 @@
 <template>
-  <div class="multiselect" @keydown="handleKeyDown">
+  <div class="multiselect">
     <div :class="['wrapper', {'multiple': multiple}]" ref="multiselect">
       <div class="multiselect-input" @click="changeDropdownState(true)">
-        <input :class="['input', {'invalid': !valid, 'search': enableSearch}]" :readonly="!enableSearch" :placeholder="placeholder" @keyup="handleInput" :disabled="disabled" :value="displayValue" />
+        <input ref="searchbox" :class="['input', {'invalid': !valid, 'search': enableSearch}]" :readonly="!enableSearch" :placeholder="placeholder" @keyup="handleInput" :disabled="disabled" :value="displayValue"/>
         <i :class="['caret', {'upward': open, 'downward': !open, 'disabled': disabled}]" @click="handleInputClick" />
         <div class="error-msg" v-if="!valid && !open">{{invalidMsg}}</div>
       </div>
@@ -100,6 +100,9 @@ export default {
       } else if (this.multiple) {
         return this.multiSelectDisplayMsg;
       } else if (this.value) {
+        if (this.$refs.searchbox) {
+          this.$refs.searchbox.blur();
+        }
         return this.display(this.options.find(option => this.val(option) === this.value));
       }
       return "";
@@ -119,6 +122,7 @@ export default {
       if (this.enableSearch) {
         this.searchQuery = e.target.value;
       }
+      this.handleKeyDown(e);
     },
     handleInputClick(e) {
       e.stopPropagation();

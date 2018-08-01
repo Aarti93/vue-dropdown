@@ -171,6 +171,7 @@ export default {
       const target = e.target;
       if (el && el !== target && !el.contains(target)) {
         this.changeDropdownState(false);
+        this.highlightedOption = this.value;
       }
     },
     getCheckedState() {
@@ -191,17 +192,17 @@ export default {
     },
     handleKeyDown({ code }) {
       if (!this.multiple) {
-        const highlightedOptionIndex = this.options.findIndex(option => this.val(option) === this.val(this.highlightedOption));
+        const highlightedOptionIndex = this.filteredOptions.findIndex(option => this.val(option) === this.val(this.highlightedOption));
         let newHighlightOption;
         switch (code) {
           case "ArrowDown":
-            newHighlightOption = this.options[highlightedOptionIndex + 1];
+            newHighlightOption = this.filteredOptions[highlightedOptionIndex + 1];
             if (newHighlightOption) {
               this.highlightedOption = newHighlightOption;
             }
             break;
           case "ArrowUp":
-            newHighlightOption = this.options[highlightedOptionIndex - 1];
+            newHighlightOption = this.filteredOptions[highlightedOptionIndex - 1];
             if (newHighlightOption) {
               this.highlightedOption = newHighlightOption;
             }

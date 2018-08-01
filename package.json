@@ -1,6 +1,6 @@
 {
   "name": "vue-select-multiple",
-  "version": "0.0.16",
+  "version": "0.0.17",
   "description": "A dropdown component with multiselect support in vue.js 2.0",
   "author": "Aarti Prabhu <aarti.prabhu93@gmail.com>",
   "main": "dist/vue-select-multiple",

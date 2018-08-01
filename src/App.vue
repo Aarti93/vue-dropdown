@@ -8,9 +8,9 @@
 <script>
 
 // import Multiselect from 'vue-select-multiple';
-// import VueMultipleSelect from '../dist/vue-select-multiple';
+import VueMultipleSelect from '../dist/vue-select-multiple';
 // import { VueMultipleSelect } from '../dist/vue-select-multiple';
-import { VueMultipleSelect } from './components';
+// import { VueMultipleSelect } from './components';
 
 export default {
   name: 'app',
